@@ -1,0 +1,3 @@
+Flask==3.0.3           # Framework web para crear APIs REST
+SQLAlchemy==2.0.30     # ORM para manejar la BD SQLite
+python-dotenv==1.0.1   # Para variables de entorno (.env)
