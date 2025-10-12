@@ -1,5 +1,6 @@
 from flask import Flask
 from controllers.motorcycle_controller import motorcycle_bp
+from controllers.auth_controller import auth_bp  
 
 app = Flask(__name__)
 
@@ -9,6 +10,7 @@ app.config["SECRET_KEY"] = "supersecretkey123"
 
 # Registrar el blueprint
 app.register_blueprint(motorcycle_bp)
+app.register_blueprint(auth_bp)
 
 @app.route("/")
 def root():
