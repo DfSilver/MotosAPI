@@ -1,0 +1,31 @@
+import jwt
+import os
+from functools import wraps
+from flask import request, jsonify
+
+SECRET_KEY = os.getenv("SECRET_KEY", "super_secret_key_123")
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+
+        # El token puede venir en el encabezado Authorization
+        if "Authorization" in request.headers:
+            auth_header = request.headers["Authorization"]
+            if auth_header.startswith("Bearer "):
+                token = auth_header.split(" ")[1]
+
+        if not token:
+            return jsonify({"error": "Token faltante"}), 401
+
+        try:
+            decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+            request.user = decoded  # Guardamos info del usuario en el request
+        except jwt.ExpiredSignatureError:
+            return jsonify({"error": "Token expirado"}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({"error": "Token inválido"}), 401
+
+        return f(*args, **kwargs)
+    return decorated

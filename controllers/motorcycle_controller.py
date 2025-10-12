@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, render_template_string
 from services.motorcycle_service import MotorcycleService
 from config.database import get_db_session
+from utils.jwt_utils import token_required
 
 motorcycle_bp = Blueprint("motorcycle_bp", __name__)
 
@@ -9,10 +10,11 @@ def get_service() -> MotorcycleService:
     return MotorcycleService(get_db_session())
 
 @motorcycle_bp.route("/motorcycles", methods=["GET"])
+@token_required  # <-- se protege esta ruta 
 def get_motorcycles():
     """
     GET /motorcycles
-    Lista todas las motocicletas.
+    Lista todas las motocicletas solo si el token es valido.
     """
     service = get_service()
     motos = service.listar_motos()
