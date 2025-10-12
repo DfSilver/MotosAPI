@@ -3,6 +3,10 @@ from controllers.motorcycle_controller import motorcycle_bp
 
 app = Flask(__name__)
 
+
+# 🔐 Clave secreta para JWT
+app.config["SECRET_KEY"] = "supersecretkey123" 
+
 # Registrar el blueprint
 app.register_blueprint(motorcycle_bp)
 
