@@ -1,22 +1,54 @@
-import bcrypt
 from models.user_model import User
+from werkzeug.security import generate_password_hash, check_password_hash
+import jwt
+import datetime
+import os
+
+# Clave secreta (recomendado pasarla por .env)
+SECRET_KEY = os.getenv("SECRET_KEY", "super_secret_key_123")
 
 class AuthService:
-    def __init__(self, db_session):
-        self.db = db_session
+    def __init__(self, db):
+        self.db = db
 
     def register_user(self, email, password, role="user"):
-        # Verificar si el correo ya existe
-        existing = self.db.query(User).filter(User.email == email).first()
-        if existing:
+        """
+        Registra un nuevo usuario con contraseña encriptada.
+        Si el correo ya existe, retorna None.
+        """
+        # Verificar si el usuario ya existe
+        existing_user = self.db.query(User).filter_by(email=email).first()
+        if existing_user:
             return None
 
-        # Encriptar contraseña
-        hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
+        # Encriptar contraseña correctamente
+        hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
 
-        # Crear usuario nuevo
-        user = User(email=email, password=hashed.decode("utf-8"), role=role)
-        self.db.add(user)
+        # Crear y guardar nuevo usuario
+        new_user = User(email=email, password=hashed_password, role=role)
+        self.db.add(new_user)
         self.db.commit()
-        self.db.refresh(user)
-        return user
+        self.db.refresh(new_user)
+
+        return new_user
+
+    def login_user(self, email, password):
+        """
+        Valida credenciales y devuelve un token JWT si son correctas.
+        """
+        user = self.db.query(User).filter_by(email=email).first()
+
+        # Verificar credenciales
+        if not user or not check_password_hash(user.password, password):
+            return None
+
+        # Generar token JWT
+        token_payload = {
+            "id": user.id,
+            "email": user.email,
+            "role": user.role,
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+        }
+
+        token = jwt.encode(token_payload, SECRET_KEY, algorithm="HS256")
+        return token
