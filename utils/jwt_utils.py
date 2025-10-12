@@ -29,3 +29,25 @@ def token_required(f):
 
         return f(*args, **kwargs)
     return decorated
+
+def role_required(required_roles):
+    """
+    Verifica que el usuario tenga uno de los roles requeridos.
+    Ejemplo de uso:
+      @token_required
+      @role_required(["admin"])
+    """
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            user = getattr(request, "user", None)
+            if not user or "role" not in user:
+                return jsonify({"error": "Token inválido o sin rol"}), 403
+
+            if user["role"] not in required_roles:
+                return jsonify({"error": "No tienes permiso para acceder a esta ruta"}), 403
+
+            return f(*args, **kwargs)
+        return wrapper
+    return decorator
+

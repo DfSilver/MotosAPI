@@ -2,6 +2,8 @@ from flask import Blueprint, request, jsonify, render_template_string
 from services.motorcycle_service import MotorcycleService
 from config.database import get_db_session
 from utils.jwt_utils import token_required
+from utils.jwt_utils import token_required, role_required
+
 
 motorcycle_bp = Blueprint("motorcycle_bp", __name__)
 
@@ -69,6 +71,8 @@ def update_motorcycle(moto_id: int):
     return jsonify({"id": moto.id, "brand": moto.brand, "reference": moto.reference}), 200
 
 @motorcycle_bp.route("/motorcycles/<int:moto_id>", methods=["DELETE"])
+@token_required
+@role_required(["user"])
 def delete_motorcycle(moto_id: int):
     """
     DELETE /motorcycles/<id>
