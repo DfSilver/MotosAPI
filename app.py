@@ -21,4 +21,9 @@ def root():
     )
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    import os
+    from waitress import serve
+
+    # Railway asigna el puerto automáticamente a través de la variable de entorno PORT
+    port = int(os.environ.get("PORT", 8080))
+    serve(app, host="0.0.0.0", port=port)
